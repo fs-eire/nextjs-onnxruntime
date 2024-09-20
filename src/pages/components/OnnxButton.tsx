@@ -1,4 +1,4 @@
-import * as onnx from "onnxruntime-web/webgpu";
+'use client';
 
 const modelBytes = new Uint8Array([
   8, 3, 18, 12, 98, 97, 99, 107, 101, 110, 100, 45, 116, 101, 115, 116, 58, 98,
@@ -13,28 +13,31 @@ export default function OnnxButton() {
   return (
     <button
       onClick={async () => {
-        const session = await onnx.InferenceSession.create(modelBytes);
+        if (typeof window !== "undefined") {
+          const onnx = (await import("onnxruntime-web/webgpu")).default;
+          const session = await onnx.InferenceSession.create(modelBytes, { executionProviders: ['webgpu'] });
 
-        const a = {
-          data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-          dims: [3, 4],
-        } as const;
+          const a = {
+            data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            dims: [3, 4],
+          } as const;
 
-        const b = {
-          data: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
-          dims: [4, 3],
-        } as const;
+          const b = {
+            data: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+            dims: [4, 3],
+          } as const;
 
-        const tensors = {
-          a: new onnx.Tensor("float32", a.data, a.dims),
-          b: new onnx.Tensor("float32", b.data, b.dims),
-        };
+          const tensors = {
+            a: new onnx.Tensor("float32", a.data, a.dims),
+            b: new onnx.Tensor("float32", b.data, b.dims),
+          };
 
-        const { c } = await session.run(tensors);
+          const { c } = await session.run(tensors);
 
-        const result = Array.from(c.data as Float32Array);
+          const result = Array.from(c.data as Float32Array);
 
-        console.log(result);
+          console.log(result);
+        }
       }}
     >
       Run
